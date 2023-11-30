@@ -13,35 +13,52 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import accuracy_score, classification_report
 
+from pathlib import Path
+
+# Grabbing Historical Price Data
+
 def grab_price_data():
-
-    # Define tickers. Supports more than 1 ticker
-    tickers_list = ['^GSPC']
     
-    full_price_history = []
+    # Supports more than 1 ticker.
+    # S&P500
+    tickerStrings = ['AAPL', 'MSFT']
+    
+    for ticker in tickerStrings:
+        
+        # Last 2 days, with daily frequency
+        # Candles in yf.dowload - Date,Open,High,Low,Close,Adj Close,Volume,ticker
+        
+        data = yf.download(ticker, group_by="Ticker", period='2y', interval='1d')
+        data['ticker'] = ticker  # add this column because the dataframe doesn't contain a column with the ticker
+        data.to_csv(f'randomForest/csvDataFrames/ticker_{ticker}.csv')
+        
+    # Read in multiple files saved with the previous section and create a single dataframe
+    p = Path('/Users/mariafernandadeleon/src/stockPred/stockPred-Mex/randomForest/csvDataFrames')
 
-    for ticker in tickers_list:
+    # Find the files; this is a generator, not a list
+    files = (p.glob('ticker_*.csv'))
+    
+    # read the files into a dataframe
+    df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
+    df.to_csv('randomForest/csvDataFrames/price_data.csv', index=False)
 
-        # Grab the daily price history for 1 year
-        stock_data = yf.Ticker(ticker)
-        price_history = stock_data.history(period='1y', interval='1d')
+    
+if os.path.exists('/randomForest/csvDataFrames/price_data.csv'):
 
-        # Grab just the candles, and add them to the list.
-        for index, row in price_history.iterrows():
-            candle = {
-                'close': row['Close'],
-                'datetime': int(index.timestamp() * 1000),  # Convert timestamp to milliseconds
-                'high': row['High'],
-                'low': row['Low'],
-                'open': row['Open'],
-                'symbol': ticker,
-                'volume': row['Volume']
-            }
-            full_price_history.append(candle)
+    # Load the data
+    price_data = pd.read_csv('/randomForest/csvDataFrames/price_data.csv')
 
-    # Save the data to a CSV file, don't have an index column
-    price_data = pd.DataFrame(full_price_history)
-    price_data.to_csv('price_data.csv', index=False, columns=['close', 'datetime', 'high', 'low', 'open', 'symbol', 'volume'])
+else:
 
-# Call the function
-grab_price_data()
+    # Grab the data and store it.
+    grab_price_data()
+
+    # Load the data
+    price_data = pd.read_csv('/randomForest/csvDataFrames/price_data.csv')
+
+# Display the head before moving on.
+print(price_data.head())
+    
+# Data Processing
+
+
