@@ -15,7 +15,11 @@ from sklearn.metrics import accuracy_score, classification_report
 
 from pathlib import Path
 
-
+'''
+# read the files to create a single dataframe
+    df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
+    
+'''
 def get_price_data():
     # Grabbing Historical Price Data
 
@@ -25,14 +29,16 @@ def get_price_data():
     
     for ticker in tickerStrings:
         # Last 2 days, with daily frequency
-        # Candles in yf.dowload - Date,Open,High,Low,Close,Adj Close,Volume,ticker
+        # Candles in yf.dowload - Date,Open,High,Low,Close,Adj Close,Volume
         
         df = yf.download(ticker, group_by="Ticker", period='2y', interval='1d')
-        df['Symbol'] = ticker  # add this column because the dataframe doesn't contain a column with the ticker
+        
+        # add this column because the dataframe doesn't contain a column with the ticker
+        df['Symbol'] = ticker  
         df.to_csv(f'randomForest/csvDataFrames/ticker_{ticker}.csv')
         
-    return clean_data()
-
+    return
+    
 def clean_data():
     # This isolation prevents NaN at the time of calculating Difference
     
@@ -51,56 +57,73 @@ def clean_data():
 
         # It should be already be sorted by symbol and Date
         # Sort by Symbol - name = df.sort_values(by = ['Symbol','Date'], inplace = True)
-
-        # Calculate the change in price
-        df['Difference'] = df['Close'].diff()
         
         df.to_csv(file, index=False)
         
-    # read the files to create a single dataframe
-    df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
-    
-    return df
+        return
 
-def calculate_momentum(df):
-    # Calculate momentum since we want to predict if the stock goes up and down, not the price itself
-    # Relative Strength Index
-    # RSI > 70 - overbought
-    # RSI < 30 - oversold
-    
-    # Calculate the 14 day RSI
-    rsi_period = 14
-    
-    # Separate data frames into average change in price up and down
-    up_df = df.dropna()[['Symbol', 'Difference']][df['Difference'] > 0]
-    down_df = df.dropna()[['Symbol', 'Difference']][df['Difference'] < 0]
-    
-    # Absolute values for down average change in price
-    down_df['Difference'] = down_df['Difference'].abs()
-    
-    # Calculate the EWMA (Exponential Weighted Moving Average), older values are given less weight compared to newer values
-    # Relative strenth formula
-    ewma_up = up_df.groupby('Symbol').group().transform(lambda x: x.ewm(span = n).mean())
-    ewma_down = down_df.groupby('Symbol')['Difference'].transform(lambda x: x.ewm(span = n).mean())
+def add_data():
+    # Read in multiple files saved with the previous section    
+    p = Path('randomForest/csvDataFrames')
 
-    # Calculate the Relative Strength
-    relative_strength = ewma_up / ewma_down
-
-    # Calculate the Relative Strength Index
-    relative_strength_index = 100.0 - (100.0 / (1.0 + relative_strength))
-
-    # Add the info to the data frame.
-    df['down_days'] = down_df['Difference']
-    df['up_days'] = up_df['Difference']
-    price_data['RSI'] = relative_strength_index
-
-    # Display the head.
-    price_data.head(30)
+    # Find the files; this is a generator, not a list
+    files = (p.glob('ticker_*.csv'))
+    
+    for file in files:
+        # Read the file
+        df = pd.read_csv(file)
         
-    print(up_df)
-    print(down_df)
+        # Calculate the change in price
+        delta = df['Close'].diff().dropna()
+                
+        # Calculate momentum since we want to predict if the stock goes up and down, not the price itself
+        # Relative Strength Index
+        # RSI > 70 - overbought
+        # RSI < 30 - oversold
+        
+        # Calculate the 14 day RSI
+        rsi_period = 14
+        
+        # Separate data frames into average change in price up and down
+        # Absolute values for down average change in price
+        
+        up_df = delta.clip(lower=0)
+        down_df = delta.clip(upper=0).abs()
+    
+        # Calculate the EWMA (Exponential Weighted Moving Average), older values are given less weight compared to newer values
+        # Relative strenth formula
+        # Calculate the exponential moving average (EMA) of the gains and losses over the time period
+        
+        ewma_gain = up_df.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
+        ewma_loss = down_df.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
+        
+        # Calculate the Relative Strength
+        relative_strength = ewma_gain / ewma_loss
 
-    return 0
+        # Calculate the Relative Strength Index
+        relative_strength_index = 100.0 - (100.0 / (1.0 + relative_strength))
+
+        # Add the info to the data frame.
+        df['Delta'] = delta
+        df['Down_price'] = down_df
+        df['Up_price'] = up_df
+        df['RSI'] = relative_strength_index
+        
+        print(relative_strength_index.tail(10))
+        
+        df.to_csv(file, index=False)
+        
+         # Display the head.
+        print(df.head())
+        
+        '''
+            
+        print(up_df)
+        print(down_df)
+            
+        return
+        '''
+    
 
 def main():
     data_folder = 'randomForest/csvDataFrames/price_data.csv'
@@ -111,20 +134,20 @@ def main():
         df = pd.read_csv(data_folder)
     else:
         # Grab the data and store it.
-        df = get_price_data()
-        df.to_csv(data_folder, index=False)
+        get_price_data()
+        clean_data()
+        add_data()
+        
+        # df.to_csv(data_folder, index=False)
         
         # Load the data
-        df = pd.read_csv(data_folder)
+        # df = pd.read_csv(data_folder)
         
     # Display the head
-    print(df.head())
+    # print(df.head())
     
     # Display NaN
-    print(df[df.isna().any(axis = 1)])
-    
-    # Calculate momentum
-    calculate_momentum(df)
+   #  print(df[df.isna().any(axis = 1)])
         
 if __name__ == "__main__":
     main()
