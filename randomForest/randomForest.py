@@ -36,8 +36,6 @@ def get_price_data():
         # add this column because the dataframe doesn't contain a column with the ticker
         df['Symbol'] = ticker  
         df.to_csv(f'randomForest/csvDataFrames/ticker_{ticker}.csv')
-        
-    return
     
 def clean_data():
     # This isolation prevents NaN at the time of calculating Difference
@@ -59,8 +57,6 @@ def clean_data():
         # Sort by Symbol - name = df.sort_values(by = ['Symbol','Date'], inplace = True)
         
         df.to_csv(file, index=False)
-        
-        return
 
 def add_data():
     # Read in multiple files saved with the previous section    
@@ -94,11 +90,13 @@ def add_data():
         # Relative strenth formula
         # Calculate the exponential moving average (EMA) of the gains and losses over the time period
         
-        ewma_gain = up_df.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
-        ewma_loss = down_df.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
+        ewma_gain = up_df.ewm(span=rsi_period).mean()
+        ewma_loss = down_df.ewm(span=rsi_period).mean()
         
         # Calculate the Relative Strength
         relative_strength = ewma_gain / ewma_loss
+        
+        print(relative_strength)
 
         # Calculate the Relative Strength Index
         relative_strength_index = 100.0 - (100.0 / (1.0 + relative_strength))
@@ -109,21 +107,10 @@ def add_data():
         df['Up_price'] = up_df
         df['RSI'] = relative_strength_index
         
-        print(relative_strength_index.tail(10))
-        
         df.to_csv(file, index=False)
         
-         # Display the head.
-        print(df.head())
-        
-        '''
-            
-        print(up_df)
-        print(down_df)
-            
-        return
-        '''
-    
+        # Display the head.
+        print(df.head(10))
 
 def main():
     data_folder = 'randomForest/csvDataFrames/price_data.csv'
