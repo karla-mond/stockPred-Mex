@@ -65,15 +65,16 @@ def add_data():
     # Find the files; this is a generator, not a list
     files = (p.glob('ticker_*.csv'))
     
-    for file in files:
-        # Read the file
+    def relative_strength_index():
+        
+        # Read updated file 
         df = pd.read_csv(file)
         
         # Calculate the change in price
         delta = df['Close'].diff().dropna()
-                
+        
         # Calculate momentum since we want to predict if the stock goes up and down, not the price itself
-        # Relative Strength Index
+        # Momentum indivator Relative Strength Index
         # RSI > 70 - overbought
         # RSI < 30 - oversold
         
@@ -96,8 +97,6 @@ def add_data():
         # Calculate the Relative Strength
         relative_strength = ewma_gain / ewma_loss
         
-        print(relative_strength)
-
         # Calculate the Relative Strength Index
         relative_strength_index = 100.0 - (100.0 / (1.0 + relative_strength))
 
@@ -109,8 +108,38 @@ def add_data():
         
         df.to_csv(file, index=False)
         
-        # Display the head.
-        print(df.head(10))
+        # Display the head
+        print(df.head())
+    
+    def stochastic_oscillator(): 
+        
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        so_period = 14
+        
+        # Apply the rolling function and grab the Min and Max.
+        low_low = df["Low"].rolling(window = so_period).min()
+        high_high =df["High"].rolling(window = so_period).max()
+
+        # Calculate the Stochastic Oscillator.
+        stochastic_oscillator = 100 * ((df['Close'] - low_low) / (high_high - low_low))
+
+        # Add the info to the data frame.
+        df['Lowest_low'] = low_low
+        df['Highest_high'] = high_high
+        df['SO'] = stochastic_oscillator
+        
+        df.to_csv(file, index=False)
+        
+        # Display the head
+        print(df.head(30))
+        
+    
+    for file in files:            
+        relative_strength_index()
+    
+        stochastic_oscillator()
 
 def main():
     data_folder = 'randomForest/csvDataFrames/price_data.csv'
