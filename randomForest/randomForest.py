@@ -62,6 +62,46 @@ def clean_data():
     
     return df
 
+def calculate_momentum(df):
+    # Calculate momentum since we want to predict if the stock goes up and down, not the price itself
+    # Relative Strength Index
+    # RSI > 70 - overbought
+    # RSI < 30 - oversold
+    
+    # Calculate the 14 day RSI
+    rsi_period = 14
+    
+    # Separate data frames into average change in price up and down
+    up_df = df.dropna()[['Symbol', 'Difference']][df['Difference'] > 0]
+    down_df = df.dropna()[['Symbol', 'Difference']][df['Difference'] < 0]
+    
+    # Absolute values for down average change in price
+    down_df['Difference'] = down_df['Difference'].abs()
+    
+    # Calculate the EWMA (Exponential Weighted Moving Average), older values are given less weight compared to newer values
+    # Relative strenth formula
+    ewma_up = up_df.groupby('Symbol').group().transform(lambda x: x.ewm(span = n).mean())
+    ewma_down = down_df.groupby('Symbol')['Difference'].transform(lambda x: x.ewm(span = n).mean())
+
+    # Calculate the Relative Strength
+    relative_strength = ewma_up / ewma_down
+
+    # Calculate the Relative Strength Index
+    relative_strength_index = 100.0 - (100.0 / (1.0 + relative_strength))
+
+    # Add the info to the data frame.
+    df['down_days'] = down_df['Difference']
+    df['up_days'] = up_df['Difference']
+    price_data['RSI'] = relative_strength_index
+
+    # Display the head.
+    price_data.head(30)
+        
+    print(up_df)
+    print(down_df)
+
+    return 0
+
 def main():
     data_folder = 'randomForest/csvDataFrames/price_data.csv'
     
@@ -72,9 +112,9 @@ def main():
     else:
         # Grab the data and store it.
         df = get_price_data()
+        df.to_csv(data_folder, index=False)
         
         # Load the data
-        df.to_csv(data_folder, index=False)
         df = pd.read_csv(data_folder)
         
     # Display the head
@@ -82,6 +122,9 @@ def main():
     
     # Display NaN
     print(df[df.isna().any(axis = 1)])
+    
+    # Calculate momentum
+    calculate_momentum(df)
         
 if __name__ == "__main__":
     main()
