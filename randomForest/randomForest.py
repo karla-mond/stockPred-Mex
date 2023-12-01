@@ -36,8 +36,6 @@ def get_price_data():
         # add this column because the dataframe doesn't contain a column with the ticker
         df['Symbol'] = ticker  
         df.to_csv(f'randomForest/csvDataFrames/ticker_{ticker}.csv')
-        
-    return
     
 def clean_data():
     # This isolation prevents NaN at the time of calculating Difference
@@ -59,8 +57,6 @@ def clean_data():
         # Sort by Symbol - name = df.sort_values(by = ['Symbol','Date'], inplace = True)
         
         df.to_csv(file, index=False)
-        
-        return
 
 def add_data():
     # Read in multiple files saved with the previous section    
@@ -69,15 +65,16 @@ def add_data():
     # Find the files; this is a generator, not a list
     files = (p.glob('ticker_*.csv'))
     
-    for file in files:
-        # Read the file
+    def relative_strength_index():
+        
+        # Read updated file 
         df = pd.read_csv(file)
         
         # Calculate the change in price
         delta = df['Close'].diff().dropna()
-                
+        
         # Calculate momentum since we want to predict if the stock goes up and down, not the price itself
-        # Relative Strength Index
+        # Momentum indicator Relative Strength Index
         # RSI > 70 - overbought
         # RSI < 30 - oversold
         
@@ -94,12 +91,12 @@ def add_data():
         # Relative strenth formula
         # Calculate the exponential moving average (EMA) of the gains and losses over the time period
         
-        ewma_gain = up_df.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
-        ewma_loss = down_df.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
+        ewma_gain = up_df.ewm(span=rsi_period).mean()
+        ewma_loss = down_df.ewm(span=rsi_period).mean()
         
         # Calculate the Relative Strength
         relative_strength = ewma_gain / ewma_loss
-
+        
         # Calculate the Relative Strength Index
         relative_strength_index = 100.0 - (100.0 / (1.0 + relative_strength))
 
@@ -109,21 +106,67 @@ def add_data():
         df['Up_price'] = up_df
         df['RSI'] = relative_strength_index
         
-        print(relative_strength_index.tail(10))
+        df.to_csv(file, index=False)
+        
+        # Display the head
+        print(df.head())
+    
+    def stochastic_oscillator(): 
+        
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        so_period = 14
+        
+        # Apply the rolling function and grab the Min and Max
+        low_low = df["Low"].rolling(window = so_period).min()
+        high_high =df["High"].rolling(window = so_period).max()
+
+        # Calculate the momentum indicator Stochastic Oscillator. Relation to the lowest price
+        stochastic_oscillator = 100 * ((df['Close'] - low_low) / (high_high - low_low))
+
+        # Add the info to the data frame
+        df['Lowest_low'] = low_low
+        df['Highest_high'] = high_high
+        df['SO'] = stochastic_oscillator
         
         df.to_csv(file, index=False)
         
-         # Display the head.
-        print(df.head())
+        # Display the head
+        print(df.head(30))
         
-        '''
-            
-        print(up_df)
-        print(down_df)
-            
-        return
-        '''
+    def williams_r():
+        
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        #WR > -20 is sell signal
+        #WR < -80 is buy signal
+        
+        # Calculate the Williams %R
+        williams_period = 14
+
+        # Calculate the momentum indicator williams %r. Relation to the highet price
+        low_low = df["Low"].rolling(window = williams_period).min()
+        high_high =df["High"].rolling(window = williams_period).max()
+
+        # Calculate William %R indicator
+        r_percent = ((high_high - df['Close']) / (high_high - low_low)) * - 100
+
+        # Add the info to the data frame
+        df['R_percent'] = r_percent
+        
+        df.to_csv(file, index=False)
+
+        # Display the head
+        df.head(30)
+        
+    for file in files:            
+        relative_strength_index()
     
+        stochastic_oscillator()
+        
+        williams_r()
 
 def main():
     data_folder = 'randomForest/csvDataFrames/price_data.csv'
