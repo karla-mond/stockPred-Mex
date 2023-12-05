@@ -7,7 +7,7 @@ def get_price_data():
 
     # Supports more than 1 ticker.
     # S&P500 - ^GSPC
-    tickerStrings = ['GOOG', 'MSFT']
+    tickerStrings = ['GOOG', 'MSFT', 'V']
     
     for ticker in tickerStrings:
         # Last 2 days, with daily frequency
@@ -17,7 +17,7 @@ def get_price_data():
         
         # add this column because the dataframe doesn't contain a column with the ticker
         df['Symbol'] = ticker  
-        df.to_csv(f'stockPred-Mex/dataBase/ticker_{ticker}.csv')
+        df.to_csv(f'/stockPred-Mex/dataBase/ticker_{ticker}.csv')
         
         print(df.head())
         
