@@ -160,6 +160,27 @@ def add_data():
 
         # Display the head
         df.head(30)
+    def macd():
+        
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        # Calculate the MACD
+        ema_26 = df.groupby('symbol')['close'].transform(lambda x: x.ewm(span = 26).mean())
+        ema_12 = df.groupby('symbol')['close'].transform(lambda x: x.ewm(span = 12).mean())
+        macd = ema_12 - ema_26
+
+        # Calculate the EMA
+        ema_9_macd = macd.ewm(span = 9).mean()
+
+        # Store the data in the data frame.
+        df['MACD'] = macd
+        df['MACD_EMA'] = ema_9_macd
+        
+        df.to_csv(file, index=False)
+        
+        # Print the head.
+        df.head(30)
         
     for file in files:            
         relative_strength_index()
