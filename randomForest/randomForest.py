@@ -182,6 +182,20 @@ def add_data():
         # Print the head.
         df.head(30)
         
+    def price_rate_change():
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        # Calculate the Price Rate of Change
+        n = 9
+
+        # Calculate the Rate of Change in the Price, and store it in the Data Frame.
+        df['Price_Rate_Of_Change'] = df.groupby('symbol')['close'].transform(lambda x: x.pct_change(periods = n))
+
+        # Print the first 30 rows
+        df.head(30)
+
+        
     for file in files:            
         relative_strength_index()
     
