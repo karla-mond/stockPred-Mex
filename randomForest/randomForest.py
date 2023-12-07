@@ -160,6 +160,41 @@ def add_data():
 
         # Display the head
         df.head(30)
+    def macd():
+        
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        # Calculate the MACD
+        ema_26 = df.groupby('symbol')['close'].transform(lambda x: x.ewm(span = 26).mean())
+        ema_12 = df.groupby('symbol')['close'].transform(lambda x: x.ewm(span = 12).mean())
+        macd = ema_12 - ema_26
+
+        # Calculate the EMA
+        ema_9_macd = macd.ewm(span = 9).mean()
+
+        # Store the data in the data frame.
+        df['MACD'] = macd
+        df['MACD_EMA'] = ema_9_macd
+        
+        df.to_csv(file, index=False)
+        
+        # Print the head.
+        df.head(30)
+        
+    def price_rate_change():
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        # Calculate the Price Rate of Change
+        n = 9
+
+        # Calculate the Rate of Change in the Price, and store it in the Data Frame.
+        df['Price_Rate_Of_Change'] = df.groupby('symbol')['close'].transform(lambda x: x.pct_change(periods = n))
+
+        # Print the first 30 rows
+        df.head(30)
+
         
     for file in files:            
         relative_strength_index()
