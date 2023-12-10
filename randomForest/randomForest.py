@@ -229,16 +229,39 @@ def add_data():
         return pd.Series(obv_values, index = group.index)
             
 
-    # apply the function to each group
-    obv_groups = df.groupby('symbol').apply(obv)
+        # apply the function to each group
+        obv_groups = df.groupby('symbol').apply(obv)
 
-    # add to the data frame, but drop the old index, before adding it.
-    df['On Balance Volume'] = obv_groups.reset_index(level=0, drop=True)
+        # add to the data frame, but drop the old index, before adding it.
+        df['On Balance Volume'] = obv_groups.reset_index(level=0, drop=True)
+        
+        df.to_csv(file, index=False)
+
+        # display the data frame.
+        df.head(30)
     
-    df.to_csv(file, index=False)
+    def pred_column():
+        
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        # Create a column we wish to predict
 
-    # display the data frame.
-    df.head(30)
+
+        # Group by the `Symbol` column, then grab the `Close` column.
+        close_groups = df.groupby('symbol')['close']
+
+        # Apply the lambda function which will return -1.0 for down, 1.0 for up and 0.0 for no change.
+        close_groups = close_groups.transform(lambda x : np.sign(x.diff()))
+
+        # add the data to the main dataframe.
+        df['Prediction'] = close_groups
+
+        # for simplicity in later sections I'm going to make a change to our prediction column. To keep this as a binary classifier I'll change flat days and consider them up days.
+        df.loc[df['Prediction'] == 0.0] = 1.0
+
+        # print the head
+        df.head(50)
 
         
     for file in files:            
