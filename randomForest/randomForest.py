@@ -133,7 +133,7 @@ def add_data():
         df.to_csv(file, index=False)
         
         # Display the head
-        print(df.head(30))
+        print(df.head(10))
         
     def williams_r():
         
@@ -146,7 +146,7 @@ def add_data():
         # Calculate the Williams %R
         williams_period = 14
 
-        # Calculate the momentum indicator williams %r. Relation to the highet price
+        # Calculate the momentum indicator williams %r. Relation to the highest price
         low_low = df["Low"].rolling(window = williams_period).min()
         high_high =df["High"].rolling(window = williams_period).max()
 
@@ -159,7 +159,8 @@ def add_data():
         df.to_csv(file, index=False)
 
         # Display the head
-        df.head(30)
+        print(df.head(10))
+        
     def macd():
         
         # Read updated file 
@@ -180,7 +181,7 @@ def add_data():
         df.to_csv(file, index=False)
         
         # Print the head.
-        df.head(30)
+        print(df.head(10))
         
     def price_rate_change():
         
@@ -196,7 +197,7 @@ def add_data():
         df.to_csv(file, index=False)
 
         # Print the first 30 rows
-        df.head(30)
+        print(df.head(10))
         
     def obv(group):
         
