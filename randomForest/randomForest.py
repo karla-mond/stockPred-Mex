@@ -133,7 +133,7 @@ def add_data():
         df.to_csv(file, index=False)
         
         # Display the head
-        print(df.head(30))
+        print(df.head(10))
         
     def williams_r():
         
@@ -159,7 +159,7 @@ def add_data():
         df.to_csv(file, index=False)
 
         # Display the head
-        df.head(30)
+        print(df.head(10))
         
     def macd():
         
@@ -181,7 +181,7 @@ def add_data():
         df.to_csv(file, index=False)
         
         # Print the head.
-        df.head(30)
+        print(df.head(10))
         
     def price_rate_change():
         
@@ -197,7 +197,7 @@ def add_data():
         df.to_csv(file, index=False)
 
         # Print the first 30 rows
-        df.head(30)
+        print(df.head(10))
         
     def obv(group):
         
