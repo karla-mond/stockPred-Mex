@@ -263,6 +263,8 @@ def add_data():
 
         # print the head
         df.head(50)
+        
+        
 
         
     for file in files:            
