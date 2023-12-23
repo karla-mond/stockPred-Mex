@@ -263,6 +263,26 @@ def add_data():
 
         # print the head
         df.head(50)
+    
+    def split_data():
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        # Grab our X & Y Columns.
+        X_Cols = df[['RSI','k_percent','r_percent','Price_Rate_Of_Change','MACD','On Balance Volume']]
+        Y_Cols = df['Prediction']
+
+        # Split X and y into X_
+        X_train, X_test, y_train, y_test = train_test_split(X_Cols, Y_Cols, random_state = 0)
+
+        # Create a Random Forest Classifier
+        rand_frst_clf = RandomForestClassifier(n_estimators = 100, oob_score = True, criterion = "gini", random_state = 0)
+
+        # Fit the data to the model
+        rand_frst_clf.fit(X_train, y_train)
+
+        # Make predictions
+        y_pred = rand_frst_clf.predict(X_test)
 
         
     for file in files:            
