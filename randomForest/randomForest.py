@@ -12,6 +12,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import confusion_matrix, plot_confusion_matrix
+
 
 from pathlib import Path
 
@@ -283,6 +285,99 @@ def add_data():
 
         # Make predictions
         y_pred = rand_frst_clf.predict(X_test)
+    
+    def interpret():
+        # Define the traget names
+        target_names = ['Down Day', 'Up Day']
+
+        # Build a classifcation report
+        report = classification_report(y_true = y_test, y_pred = y_pred, target_names = target_names, output_dict = True)
+
+        # Add it to a data frame, transpose it for readability.
+        report_df = pd.DataFrame(report).transpose()
+        report_df
+        
+    def confusion_matrix():
+        rf_matrix = confusion_matrix(y_test, y_pred)
+
+        true_negatives = rf_matrix[0][0]
+        false_negatives = rf_matrix[1][0]
+        true_positives = rf_matrix[1][1]
+        false_positives = rf_matrix[0][1]
+
+        accuracy = (true_negatives + true_positives) / (true_negatives + true_positives + false_negatives + false_positives)
+        percision = true_positives / (true_positives + false_positives)
+        recall = true_positives / (true_positives + false_negatives)
+        specificity = true_negatives / (true_negatives + false_positives)
+
+        print('Accuracy: {}'.format(float(accuracy)))
+        print('Percision: {}'.format(float(percision)))
+        print('Recall: {}'.format(float(recall)))
+        print('Specificity: {}'.format(float(specificity)))
+
+        disp = plot_confusion_matrix(rand_frst_clf, X_test, y_test, display_labels = ['Down Day', 'Up Day'], normalize = 'true', cmap=plt.cm.Blues)
+        disp.ax_.set_title('Confusion Matrix - Normalized')
+        plt.show()
+    
+    def split_data():
+        # Read updated file 
+        df = pd.read_csv(file)
+        
+        # Grab our X & Y Columns.
+        X_Cols = df[['RSI','k_percent','r_percent','Price_Rate_Of_Change','MACD','On Balance Volume']]
+        Y_Cols = df['Prediction']
+
+        # Split X and y into X_
+        X_train, X_test, y_train, y_test = train_test_split(X_Cols, Y_Cols, random_state = 0)
+
+        # Create a Random Forest Classifier
+        rand_frst_clf = RandomForestClassifier(n_estimators = 100, oob_score = True, criterion = "gini", random_state = 0)
+
+        # Fit the data to the model
+        rand_frst_clf.fit(X_train, y_train)
+
+        # Make predictions
+        y_pred = rand_frst_clf.predict(X_test)
+        
+        # Print the Accuracy of our Model.
+        print('Correct Prediction (%): ', accuracy_score(y_test, rand_frst_clf.predict(X_test), normalize = True) * 100.0)
+        
+        # Define the traget names
+        target_names = ['Down Day', 'Up Day']
+
+        # Build a classifcation report
+        report = classification_report(y_true = y_test, y_pred = y_pred, target_names = target_names, output_dict = True)
+
+        # Add it to a data frame, transpose it for readability.
+        report_df = pd.DataFrame(report).transpose()
+        report_df
+        
+        # store the values in a list to plot.
+        x_values = list(range(len(rand_frst_clf.feature_importances_)))
+
+        # Cumulative importances
+        cumulative_importances = np.cumsum(feature_imp.values)
+
+        # Make a line graph
+        plt.plot(x_values, cumulative_importances, 'g-')
+
+        # Draw line at 95% of importance retained
+        plt.hlines(y = 0.95, xmin = 0, xmax = len(feature_imp), color = 'r', linestyles = 'dashed')
+
+        # Format x ticks and labels
+        plt.xticks(x_values, feature_imp.index, rotation = 'vertical')
+
+        # Axis labels and title
+        plt.xlabel('Variable')
+        plt.ylabel('Cumulative Importance')
+        plt.title('Random Forest: Feature Importance Graph')
+        
+        # Create an ROC Curve plot.
+        rfc_disp = plot_roc_curve(rand_frst_clf, X_test, y_test, alpha = 0.8)
+        plt.show()
+        
+        print('Random Forest Out-Of-Bag Error Score: {}'.format(rand_frst_clf.oob_score_))
+
 
         
     for file in files:            
