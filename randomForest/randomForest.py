@@ -375,6 +375,9 @@ def add_data():
         # Create an ROC Curve plot.
         rfc_disp = plot_roc_curve(rand_frst_clf, X_test, y_test, alpha = 0.8)
         plt.show()
+        
+        print('Random Forest Out-Of-Bag Error Score: {}'.format(rand_frst_clf.oob_score_))
+
 
         
     for file in files:            
