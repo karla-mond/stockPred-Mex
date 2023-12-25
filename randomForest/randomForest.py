@@ -378,6 +378,35 @@ def add_data():
         
         print('Random Forest Out-Of-Bag Error Score: {}'.format(rand_frst_clf.oob_score_))
 
+    def randomized_search():
+        # Number of trees in random forest
+        n_estimators = list(range(200, 2000, 200))
+
+        # Number of features to consider at every split
+        max_features = ['auto', 'sqrt', None, 'log2']
+
+        # Maximum number of levels in tree
+        max_depth = list(range(10, 110, 10))
+        max_depth.append(None)
+
+        # Minimum number of samples required to split a node
+        min_samples_split = [2, 5, 10, 20, 30, 40]
+
+        # Minimum number of samples required at each leaf node
+        min_samples_leaf = [1, 2, 7, 12, 14, 16 ,20]
+
+        # Method of selecting samples for training each tree
+        bootstrap = [True, False]
+
+        # Create the random grid
+        random_grid = {'n_estimators': n_estimators,
+                    'max_features': max_features,
+                    'max_depth': max_depth,
+                    'min_samples_split': min_samples_split,
+                    'min_samples_leaf': min_samples_leaf,
+                    'bootstrap': bootstrap}
+
+        print(random_grid)
 
         
     for file in files:            
