@@ -378,6 +378,79 @@ def add_data():
         
         print('Random Forest Out-Of-Bag Error Score: {}'.format(rand_frst_clf.oob_score_))
 
+    def randomized_search():
+        # Number of trees in random forest
+        n_estimators = list(range(200, 2000, 200))
+
+        # Number of features to consider at every split
+        max_features = ['auto', 'sqrt', None, 'log2']
+
+        # Maximum number of levels in tree
+        max_depth = list(range(10, 110, 10))
+        max_depth.append(None)
+
+        # Minimum number of samples required to split a node
+        min_samples_split = [2, 5, 10, 20, 30, 40]
+
+        # Minimum number of samples required at each leaf node
+        min_samples_leaf = [1, 2, 7, 12, 14, 16 ,20]
+
+        # Method of selecting samples for training each tree
+        bootstrap = [True, False]
+
+        # Create the random grid
+        random_grid = {'n_estimators': n_estimators,
+                    'max_features': max_features,
+                    'max_depth': max_depth,
+                    'min_samples_split': min_samples_split,
+                    'min_samples_leaf': min_samples_leaf,
+                    'bootstrap': bootstrap}
+
+        print(random_grid)
+        
+        # New Random Forest Classifier to house optimal parameters
+        rf = RandomForestClassifier()
+
+        # Specfiy the details of our Randomized Search
+        rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
+
+        # Fit the random search model
+        rf_random.fit(X_train, y_train)
+        
+        # With the new Random Classifier trained we can proceed to our regular steps, prediction.
+        rf_random.predict(X_test)
+
+        # Accuracy
+        print('Correct Prediction (%): ', accuracy_score(y_test, rf_random.predict(X_test), normalize = True) * 100.0)
+
+
+        # CLASSIFICATION REPORT
+        
+        target_names = ['Down Day', 'Up Day']
+
+        report = classification_report(y_true = y_test, y_pred = y_pred, target_names = target_names, output_dict = True)
+
+        report_df = pd.DataFrame(report).transpose()
+        display(report_df)
+        print('\n')
+
+        # Feature importance
+        feature_imp = pd.Series(rand_frst_clf.feature_importances_, index=X_Cols.columns).sort_values(ascending=False)
+        display(feature_imp)
+        
+        # Roc Curve
+
+        fig, ax = plt.subplots()
+
+        rfc_disp = plot_roc_curve(rand_frst_clf, X_test, y_test, alpha = 0.8, name='ROC Curve', lw=1, ax=ax)
+
+        ax.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r', label='Chance', alpha=.8)
+
+        ax.set(xlim=[-0.05, 1.05], ylim=[-0.05, 1.05], title="ROC Curve Random Forest")
+
+        ax.legend(loc="lower right")
+
+        plt.show()
 
         
     for file in files:            
