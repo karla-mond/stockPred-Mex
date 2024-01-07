@@ -12,7 +12,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.metrics import confusion_matrix, plot_confusion_matrix
 
 
 from pathlib import Path
@@ -27,10 +26,10 @@ def get_price_data():
 
     # Supports more than 1 ticker.
     # S&P500 - ^GSPC
-    tickerStrings = ['AAPL', 'MSFT']
+    tickerStrings = ['AAPL']
     
     for ticker in tickerStrings:
-        # Last 2 days, with daily frequency
+        # Last 2 years, with daily frequency
         # Candles in yf.dowload - Date,Open,High,Low,Close,Adj Close,Volume
         
         df = yf.download(ticker, group_by="Ticker", period='2y', interval='1d')
@@ -67,11 +66,8 @@ def add_data():
     # Find the files; this is a generator, not a list
     files = (p.glob('ticker_*.csv'))
     
-    def relative_strength_index():
-        
-        # Read updated file 
-        df = pd.read_csv(file)
-        
+    def relative_strength_index(df):
+    
         # Calculate the change in price
         delta = df['Close'].diff().dropna()
         
@@ -107,16 +103,8 @@ def add_data():
         df['Down_price'] = down_df
         df['Up_price'] = up_df
         df['RSI'] = relative_strength_index
-        
-        df.to_csv(file, index=False)
-        
-        # Display the head
-        print(df.head())
     
-    def stochastic_oscillator(): 
-        
-        # Read updated file 
-        df = pd.read_csv(file)
+    def stochastic_oscillator(df): 
         
         so_period = 14
         
@@ -132,117 +120,54 @@ def add_data():
         df['Highest_high'] = high_high
         df['SO'] = stochastic_oscillator
         
-        df.to_csv(file, index=False)
+    def williams_r(df):
         
-        # Display the head
-        print(df.head(10))
+        # WR > -20 is sell signal
+        # WR < -80 is buy signal
         
-    def williams_r():
-        
-        # Read updated file 
-        df = pd.read_csv(file)
-        
-        #WR > -20 is sell signal
-        #WR < -80 is buy signal
-        
-        # Calculate the Williams %R
-        williams_period = 14
+        # William R period depends on SO period
 
-        # Calculate the momentum indicator williams %r. Relation to the highest price
-        low_low = df["Low"].rolling(window = williams_period).min()
-        high_high =df["High"].rolling(window = williams_period).max()
-
-        # Calculate William %R indicator
-        r_percent = ((high_high - df['Close']) / (high_high - low_low)) * - 100
+        # Calculate the momentum indicator Williams %R. Relation to the highest price
+        r_percent = ((df['Highest_high'] - df['Close']) / (df['Highest_high'] - df['Lowest_low'])) * - 100
 
         # Add the info to the data frame
         df['R_percent'] = r_percent
         
-        df.to_csv(file, index=False)
-
-        # Display the head
-        print(df.head(10))
+    def macd(df):
         
-    def macd():
-        
-        # Read updated file 
-        df = pd.read_csv(file)
+        # MACD goes below the SingalLine -> sell signal. Above the SignalLine -> buy signal.
         
         # Calculate the MACD
-        ema_26 = df.groupby('symbol')['close'].transform(lambda x: x.ewm(span = 26).mean())
-        ema_12 = df.groupby('symbol')['close'].transform(lambda x: x.ewm(span = 12).mean())
+        ema_26 = df['Close'].ewm(span=26).mean()
+        ema_12 = df['Close'].ewm(span=12).mean()
         macd = ema_12 - ema_26
 
-        # Calculate the EMA
-        ema_9_macd = macd.ewm(span = 9).mean()
+        # Calculate the EMA of the MACD
+        ema_9_macd = macd.ewm(span=9).mean()
 
         # Store the data in the data frame.
         df['MACD'] = macd
         df['MACD_EMA'] = ema_9_macd
         
-        df.to_csv(file, index=False)
+    def price_rate_change(df):
         
-        # Print the head.
-        print(df.head(10))
+        # Measures the most recent change in price with respect to the price in n days ago.
         
-    def price_rate_change():
-        
-        # Read updated file 
-        df = pd.read_csv(file)
-        
-        # Calculate the Price Rate of Change
+        # Standard window of 9.
         n = 9
 
-        # Calculate the Rate of Change in the Price, and store it in the Data Frame.
-        df['Price_Rate_Of_Change'] = df.groupby('symbol')['close'].transform(lambda x: x.pct_change(periods = n))
+        # Calculate the Rate of Change in the Price
+        df['Price_Rate_Of_Change'] = df['Close'].pct_change(periods=n)
         
-        df.to_csv(file, index=False)
-
-        # Print the first 30 rows
-        print(df.head(10))
+    def obv(df):
         
-    def obv(group):
+        # Uses changes in volume to estimate changes in stock prices by considering the cumulative volume.
         
-        # Read updated file 
-        df = pd.read_csv(file)
+        df['Delta'] = df['Close'].diff().fillna(0)
+        obv_values = (df['Delta'] > 0).astype(int) * df['Volume'] - (df['Delta'] < 0).astype(int) * df['Volume']
+        df['On Balance Volume'] = obv_values.cumsum()
 
-        # Grab the volume and close column.
-        volume = group['volume']
-        change = group['close'].diff()
-
-        # intialize the previous OBV
-        prev_obv = 0
-        obv_values = []
-
-        # calculate the On Balance Volume
-        for i, j in zip(change, volume):
-
-            if i > 0:
-                current_obv = prev_obv + j
-            elif i < 0:
-                current_obv = prev_obv - j
-            else:
-                current_obv = prev_obv
-
-            # OBV.append(current_OBV)
-            prev_obv = current_obv
-            obv_values.append(current_obv)
         
-        # Return a panda series.
-        return pd.Series(obv_values, index = group.index)
-            
-
-        # apply the function to each group
-        obv_groups = df.groupby('symbol').apply(obv)
-
-        # add to the data frame, but drop the old index, before adding it.
-        df['On Balance Volume'] = obv_groups.reset_index(level=0, drop=True)
-        
-        df.to_csv(file, index=False)
-
-        # display the data frame.
-        df.head(30)
-    
     def pred_column():
         
         # Read updated file 
@@ -262,9 +187,6 @@ def add_data():
 
         # for simplicity in later sections I'm going to make a change to our prediction column. To keep this as a binary classifier I'll change flat days and consider them up days.
         df.loc[df['Prediction'] == 0.0] = 1.0
-
-        # print the head
-        df.head(50)
     
     def split_data():
         # Read updated file 
@@ -453,12 +375,22 @@ def add_data():
         plt.show()
 
         
-    for file in files:            
-        relative_strength_index()
+    for file in files:     
+        df = pd.read_csv(file)
+               
+        relative_strength_index(df)
     
-        stochastic_oscillator()
+        stochastic_oscillator(df)
         
-        williams_r()
+        williams_r(df)
+        
+        macd(df)
+        
+        price_rate_change(df)
+        
+        obv(df)
+        
+        df.to_csv(file, index=False)
 
 def main():
     data_folder = 'randomForest/csvDataFrames/price_data.csv'
