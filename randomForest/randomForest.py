@@ -167,7 +167,7 @@ def add_data():
         obv_values = (df['Delta'] > 0).astype(int) * df['Volume'] - (df['Delta'] < 0).astype(int) * df['Volume']
         
         # Store the data in the data frame.
-        df['On Balance Volume'] = obv_values.cumsum()
+        df['OBV'] = obv_values.cumsum()
 
     for file in files:     
         df = pd.read_csv(file)
@@ -203,30 +203,35 @@ def predict():
 
         direction_predictions = np.sign(df['Delta'])
         
-        direction_predictions[direction_predictions == 0.0] = 1.0
+        direction_predictions[direction_predictions==0.0] = 1.0
         
         # Store the data in the data frame.
-        df['Direction_Prediction'] = direction_predictions
-   
-    def split_data():
-        # Read updated file 
-        df = pd.read_csv(file)
+        df['Direction_prediction'] = direction_predictions
+           
+    def split_data(df):
         
-        # Grab our X & Y Columns.
-        X_Cols = df[['RSI','k_percent','r_percent','Price_Rate_Of_Change','MACD','On Balance Volume']]
-        Y_Cols = df['Prediction']
+        # Drop NaN values before feeding it to the model
+        df  = df.dropna()
+        
+        # Split into training and test set
+        X_Cols = df[['RSI','SO','R_percent','MACD','Price_Rate_Of_Change','OBV']]
+        Y_Cols = df['Direction_prediction']
+        
+        # Test size 20%
+        X_train, X_test, y_train, y_test = train_test_split(X_Cols, Y_Cols, random_state=0)
 
-        # Split X and y into X_
-        X_train, X_test, y_train, y_test = train_test_split(X_Cols, Y_Cols, random_state = 0)
-
-        # Create a Random Forest Classifier
-        rand_frst_clf = RandomForestClassifier(n_estimators = 100, oob_score = True, criterion = "gini", random_state = 0)
+        # Random Forest Classifier
+        # 100 trees
+        rand_frst_clf = RandomForestClassifier(n_estimators=100, oob_score=True, criterion="gini", random_state=0)
 
         # Fit the data to the model
         rand_frst_clf.fit(X_train, y_train)
 
         # Make predictions
         y_pred = rand_frst_clf.predict(X_test)
+        
+        # Print the Accuracy of our Model.
+        print('Correct Prediction (%): ', accuracy_score(y_test, rand_frst_clf.predict(X_test), normalize = True) * 100.0)
     
     def interpret():
         # Define the traget names
@@ -260,66 +265,7 @@ def predict():
         disp = plot_confusion_matrix(rand_frst_clf, X_test, y_test, display_labels = ['Down Day', 'Up Day'], normalize = 'true', cmap=plt.cm.Blues)
         disp.ax_.set_title('Confusion Matrix - Normalized')
         plt.show()
-    
-    def split_data():
-        # Read updated file 
-        df = pd.read_csv(file)
         
-        # Grab our X & Y Columns.
-        X_Cols = df[['RSI','k_percent','r_percent','Price_Rate_Of_Change','MACD','On Balance Volume']]
-        Y_Cols = df['Prediction']
-
-        # Split X and y into X_
-        X_train, X_test, y_train, y_test = train_test_split(X_Cols, Y_Cols, random_state = 0)
-
-        # Create a Random Forest Classifier
-        rand_frst_clf = RandomForestClassifier(n_estimators = 100, oob_score = True, criterion = "gini", random_state = 0)
-
-        # Fit the data to the model
-        rand_frst_clf.fit(X_train, y_train)
-
-        # Make predictions
-        y_pred = rand_frst_clf.predict(X_test)
-        
-        # Print the Accuracy of our Model.
-        print('Correct Prediction (%): ', accuracy_score(y_test, rand_frst_clf.predict(X_test), normalize = True) * 100.0)
-        
-        # Define the traget names
-        target_names = ['Down Day', 'Up Day']
-
-        # Build a classifcation report
-        report = classification_report(y_true = y_test, y_pred = y_pred, target_names = target_names, output_dict = True)
-
-        # Add it to a data frame, transpose it for readability.
-        report_df = pd.DataFrame(report).transpose()
-        report_df
-        
-        # store the values in a list to plot.
-        x_values = list(range(len(rand_frst_clf.feature_importances_)))
-
-        # Cumulative importances
-        cumulative_importances = np.cumsum(feature_imp.values)
-
-        # Make a line graph
-        plt.plot(x_values, cumulative_importances, 'g-')
-
-        # Draw line at 95% of importance retained
-        plt.hlines(y = 0.95, xmin = 0, xmax = len(feature_imp), color = 'r', linestyles = 'dashed')
-
-        # Format x ticks and labels
-        plt.xticks(x_values, feature_imp.index, rotation = 'vertical')
-
-        # Axis labels and title
-        plt.xlabel('Variable')
-        plt.ylabel('Cumulative Importance')
-        plt.title('Random Forest: Feature Importance Graph')
-        
-        # Create an ROC Curve plot.
-        rfc_disp = plot_roc_curve(rand_frst_clf, X_test, y_test, alpha = 0.8)
-        plt.show()
-        
-        print('Random Forest Out-Of-Bag Error Score: {}'.format(rand_frst_clf.oob_score_))
-
     def randomized_search():
         # Number of trees in random forest
         n_estimators = list(range(200, 2000, 200))
@@ -398,6 +344,8 @@ def predict():
         df = pd.read_csv(file)
                
         direction_prediction(df)
+        
+        split_data(df)
         
         df.to_csv(file, index=False)    
 
