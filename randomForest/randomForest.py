@@ -163,24 +163,10 @@ def add_data():
         
         # Uses changes in volume to estimate changes in stock prices by considering the cumulative volume.
         
-        # intialize the previous OBV
-        prev_obv = 0
-        obv_values = []
+        df['Delta'] = df['Close'].diff().fillna(0)
+        obv_values = (df['Delta'] > 0).astype(int) * df['Volume'] - (df['Delta'] < 0).astype(int) * df['Volume']
+        df['On Balance Volume'] = obv_values.cumsum()
 
-        # calculate the On Balance Volume
-        for delta, volume in zip(df['Delta'], df['Volume']):
-
-            if delta > 0:
-                current_obv = prev_obv + volume
-            elif delta < 0:
-                current_obv= prev_obv - volume
-            else:
-                current_obv = prev_obv
-
-            prev_obv = current_obv
-            obv_values.append(current_obv)
-        
-        df['On Balance Volume'] = obv_values
         
     def pred_column():
         
