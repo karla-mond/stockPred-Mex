@@ -26,10 +26,10 @@ def get_price_data():
 
     # Supports more than 1 ticker.
     # S&P500 - ^GSPC
-    tickerStrings = ['AAPL', 'MSFT']
+    tickerStrings = ['AAPL']
     
     for ticker in tickerStrings:
-        # Last 2 days, with daily frequency
+        # Last 2 years, with daily frequency
         # Candles in yf.dowload - Date,Open,High,Low,Close,Adj Close,Volume
         
         df = yf.download(ticker, group_by="Ticker", period='2y', interval='1d')
@@ -149,18 +149,14 @@ def add_data():
         df['MACD'] = macd
         df['MACD_EMA'] = ema_9_macd
         
-    def price_rate_change():
-        
-        # Read updated file 
-        df = pd.read_csv(file)
+    def price_rate_change(df):
         
         # Calculate the Price Rate of Change
         n = 9
 
         # Calculate the Rate of Change in the Price, and store it in the Data Frame.
-        df['Price_Rate_Of_Change'] = df.groupby('symbol')['close'].transform(lambda x: x.pct_change(periods = n))
+        df['Price_Rate_Of_Change'] = df['Close'].pct_change(periods = n)
         
-        df.to_csv(file, index=False)
         
     def obv(group):
         
@@ -418,6 +414,8 @@ def add_data():
         williams_r(df)
         
         macd(df)
+        
+        price_rate_change(df)
         
         df.to_csv(file, index=False)
 
