@@ -151,7 +151,9 @@ def add_data():
         
     def price_rate_change(df):
         
-        # Calculate the Price Rate of Change
+        # Measures the most recent change in price with respect to the price in n days ago.
+        
+        # Calculate the Price Rate of Change. Standard window of 9.
         n = 9
 
         # Calculate the Rate of Change in the Price, and store it in the Data Frame.
