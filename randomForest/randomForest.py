@@ -138,12 +138,12 @@ def add_data():
         # MACD goes below the SingalLine -> sell signal. Above the SignalLine -> buy signal.
         
         # Calculate the MACD
-        ema_26 = df['Close'].ewm(span = 26).mean()
-        ema_12 = df['Close'].ewm(span = 12).mean()
+        ema_26 = df['Close'].ewm(span=26).mean()
+        ema_12 = df['Close'].ewm(span=12).mean()
         macd = ema_12 - ema_26
 
         # Calculate the EMA of the MACD
-        ema_9_macd = macd.ewm(span = 9).mean()
+        ema_9_macd = macd.ewm(span=9).mean()
 
         # Store the data in the data frame.
         df['MACD'] = macd
@@ -153,52 +153,35 @@ def add_data():
         
         # Measures the most recent change in price with respect to the price in n days ago.
         
-        # Calculate the Price Rate of Change. Standard window of 9.
+        # Standard window of 9.
         n = 9
 
-        # Calculate the Rate of Change in the Price, and store it in the Data Frame.
-        df['Price_Rate_Of_Change'] = df['Close'].pct_change(periods = n)
+        # Calculate the Rate of Change in the Price
+        df['Price_Rate_Of_Change'] = df['Close'].pct_change(periods=n)
         
+    def obv(df):
         
-    def obv(group):
+        # Uses changes in volume to estimate changes in stock prices by considering the cumulative volume.
         
-        # Read updated file 
-        df = pd.read_csv(file)
-
-        # Grab the volume and close column.
-        volume = group['volume']
-        change = group['close'].diff()
-
         # intialize the previous OBV
         prev_obv = 0
         obv_values = []
 
         # calculate the On Balance Volume
-        for i, j in zip(change, volume):
+        for delta, volume in zip(df['Delta'], df['Volume']):
 
-            if i > 0:
-                current_obv = prev_obv + j
-            elif i < 0:
-                current_obv = prev_obv - j
+            if delta > 0:
+                current_obv = prev_obv + volume
+            elif delta < 0:
+                current_obv= prev_obv - volume
             else:
                 current_obv = prev_obv
 
-            # OBV.append(current_OBV)
             prev_obv = current_obv
             obv_values.append(current_obv)
         
-        # Return a panda series.
-        return pd.Series(obv_values, index = group.index)
-            
-
-        # apply the function to each group
-        obv_groups = df.groupby('symbol').apply(obv)
-
-        # add to the data frame, but drop the old index, before adding it.
-        df['On Balance Volume'] = obv_groups.reset_index(level=0, drop=True)
+        df['On Balance Volume'] = obv_values
         
-        df.to_csv(file, index=False)
-    
     def pred_column():
         
         # Read updated file 
@@ -418,6 +401,8 @@ def add_data():
         macd(df)
         
         price_rate_change(df)
+        
+        obv(df)
         
         df.to_csv(file, index=False)
 
