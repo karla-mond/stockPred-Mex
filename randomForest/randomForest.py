@@ -98,7 +98,7 @@ def add_data():
         # Calculate the Relative Strength Index
         relative_strength_index = 100.0 - (100.0 / (1.0 + relative_strength))
 
-        # Add the info to the data frame.
+        # Store the data in the data frame.
         df['Delta'] = delta
         df['Down_price'] = down_df
         df['Up_price'] = up_df
@@ -115,7 +115,7 @@ def add_data():
         # Calculate the momentum indicator Stochastic Oscillator. Relation to the lowest price
         stochastic_oscillator = 100 * ((df['Close'] - low_low) / (high_high - low_low))
 
-        # Add the info to the data frame
+        # Store the data in the data frame.
         df['Lowest_low'] = low_low
         df['Highest_high'] = high_high
         df['SO'] = stochastic_oscillator
@@ -130,7 +130,7 @@ def add_data():
         # Calculate the momentum indicator Williams %R. Relation to the highest price
         r_percent = ((df['Highest_high'] - df['Close']) / (df['Highest_high'] - df['Lowest_low'])) * - 100
 
-        # Add the info to the data frame
+        # Store the data in the data frame.
         df['R_percent'] = r_percent
         
     def macd(df):
@@ -156,7 +156,7 @@ def add_data():
         # Standard window of 9.
         n = 9
 
-        # Calculate the Rate of Change in the Price
+        # Calculate and store the Rate of Change in the Price
         df['Price_Rate_Of_Change'] = df['Close'].pct_change(periods=n)
         
     def obv(df):
@@ -165,29 +165,49 @@ def add_data():
         
         df['Delta'] = df['Close'].diff().fillna(0)
         obv_values = (df['Delta'] > 0).astype(int) * df['Volume'] - (df['Delta'] < 0).astype(int) * df['Volume']
+        
+        # Store the data in the data frame.
         df['On Balance Volume'] = obv_values.cumsum()
 
-        
-    def pred_column():
-        
-        # Read updated file 
+    for file in files:     
         df = pd.read_csv(file)
-        
-        # Create a column we wish to predict
-
-
-        # Group by the `Symbol` column, then grab the `Close` column.
-        close_groups = df.groupby('symbol')['close']
-
-        # Apply the lambda function which will return -1.0 for down, 1.0 for up and 0.0 for no change.
-        close_groups = close_groups.transform(lambda x : np.sign(x.diff()))
-
-        # add the data to the main dataframe.
-        df['Prediction'] = close_groups
-
-        # for simplicity in later sections I'm going to make a change to our prediction column. To keep this as a binary classifier I'll change flat days and consider them up days.
-        df.loc[df['Prediction'] == 0.0] = 1.0
+               
+        relative_strength_index(df)
     
+        stochastic_oscillator(df)
+        
+        williams_r(df)
+        
+        macd(df)
+        
+        price_rate_change(df)
+        
+        obv(df)
+        
+        df.to_csv(file, index=False)
+
+def predict():
+    
+    # Read in multiple files saved with the previous section    
+    p = Path('randomForest/csvDataFrames')
+
+    # Find the files; this is a generator, not a list
+    files = (p.glob('ticker_*.csv'))
+    
+    def direction_prediction(df):
+        
+        # Predict closing direction
+        # 1.0 for negative values (down days)
+        # 1.0 for postive values
+        # 0.0 for no change (flat days)
+
+        direction_predictions = np.sign(df['Delta'])
+        
+        direction_predictions[direction_predictions == 0.0] = 1.0
+        
+        # Store the data in the data frame.
+        df['Direction_Prediction'] = direction_predictions
+   
     def split_data():
         # Read updated file 
         df = pd.read_csv(file)
@@ -373,24 +393,13 @@ def add_data():
         ax.legend(loc="lower right")
 
         plt.show()
-
-        
+    
     for file in files:     
         df = pd.read_csv(file)
                
-        relative_strength_index(df)
-    
-        stochastic_oscillator(df)
+        direction_prediction(df)
         
-        williams_r(df)
-        
-        macd(df)
-        
-        price_rate_change(df)
-        
-        obv(df)
-        
-        df.to_csv(file, index=False)
+        df.to_csv(file, index=False)    
 
 def main():
     data_folder = 'randomForest/csvDataFrames/price_data.csv'
@@ -404,6 +413,7 @@ def main():
         get_price_data()
         clean_data()
         add_data()
+        predict()
         
         # df.to_csv(data_folder, index=False)
         
