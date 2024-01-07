@@ -7,12 +7,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import RocCurveDisplay
-from sklearn.metrics import accuracy_score, classification_report
-
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, pair_confusion_matrix
 
 from pathlib import Path
 
@@ -207,44 +204,41 @@ def predict():
         
         # Store the data in the data frame.
         df['Direction_prediction'] = direction_predictions
-           
+    
+    def preprocess_data(df):
+        
+        # Drop al NaN values before feeding it to the model
+        df = df.dropna()
+        return df
+        
     def split_data(df):
         
-        # Drop NaN values before feeding it to the model
-        df  = df.dropna()
-        
         # Split into training and test set
-        X_Cols = df[['RSI','SO','R_percent','MACD','Price_Rate_Of_Change','OBV']]
-        Y_Cols = df['Direction_prediction']
+        X_cols = df[['RSI', 'SO', 'R_percent', 'MACD', 'Price_Rate_Of_Change', 'OBV']]
+        Y_cols = df['Direction_prediction']
         
-        # Test size 20%
-        X_train, X_test, y_train, y_test = train_test_split(X_Cols, Y_Cols, random_state=0)
-
+        return train_test_split(X_cols, Y_cols, random_state=0)
+    
+    def train_model(X_train, X_test, y_train):
+        
         # Random Forest Classifier
         # 100 trees
         rand_frst_clf = RandomForestClassifier(n_estimators=100, oob_score=True, criterion="gini", random_state=0)
-
+        
         # Fit the data to the model
         rand_frst_clf.fit(X_train, y_train)
-
-        # Make predictions
-        y_pred = rand_frst_clf.predict(X_test)
-        
-        # Print the Accuracy of our Model.
-        print('Correct Prediction (%): ', accuracy_score(y_test, rand_frst_clf.predict(X_test), normalize = True) * 100.0)
+        return rand_frst_clf
     
-    def interpret():
-        # Define the traget names
-        target_names = ['Down Day', 'Up Day']
+    def evaluate_model(clf, X_test, y_test):
+        y_pred = clf.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred, normalize=True) * 100.0
+        print('Correct Prediction (%): ', accuracy)
 
-        # Build a classifcation report
-        report = classification_report(y_true = y_test, y_pred = y_pred, target_names = target_names, output_dict = True)
-
-        # Add it to a data frame, transpose it for readability.
+        # Use F-score to measure Recall and Precision at the same time through Harmonic Mean.
+        report = classification_report(y_true=y_test, y_pred=y_pred, target_names=['Down Day', 'Up Day'], output_dict=True)
         report_df = pd.DataFrame(report).transpose()
-        report_df
+        print('Classification Report: ', report_df)
         
-    def confusion_matrix():
         rf_matrix = confusion_matrix(y_test, y_pred)
 
         true_negatives = rf_matrix[0][0]
@@ -262,31 +256,31 @@ def predict():
         print('Recall: {}'.format(float(recall)))
         print('Specificity: {}'.format(float(specificity)))
 
-        disp = plot_confusion_matrix(rand_frst_clf, X_test, y_test, display_labels = ['Down Day', 'Up Day'], normalize = 'true', cmap=plt.cm.Blues)
+        disp = pair_confusion_matrix(clf, X_test, y_test, display_labels=['Down Day', 'Up Day'],normalize='true', cmap=plt.cm.Blues)
         disp.ax_.set_title('Confusion Matrix - Normalized')
         plt.show()
+            
+    def tune_hyperparameters(X_train, y_train):
         
-    def randomized_search():
-        # Number of trees in random forest
+        # Tree Number
         n_estimators = list(range(200, 2000, 200))
-
+        
         # Number of features to consider at every split
         max_features = ['auto', 'sqrt', None, 'log2']
-
-        # Maximum number of levels in tree
+        
+        # Max tree level number 
         max_depth = list(range(10, 110, 10))
         max_depth.append(None)
-
+        
         # Minimum number of samples required to split a node
         min_samples_split = [2, 5, 10, 20, 30, 40]
-
+        
         # Minimum number of samples required at each leaf node
-        min_samples_leaf = [1, 2, 7, 12, 14, 16 ,20]
-
+        min_samples_leaf = [1, 2, 7, 12, 14, 16, 20]
+        
         # Method of selecting samples for training each tree
         bootstrap = [True, False]
 
-        # Create the random grid
         random_grid = {'n_estimators': n_estimators,
                     'max_features': max_features,
                     'max_depth': max_depth,
@@ -298,54 +292,22 @@ def predict():
         
         # New Random Forest Classifier to house optimal parameters
         rf = RandomForestClassifier()
-
+        
         # Specfiy the details of our Randomized Search
-        rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
-
+        rf_random = RandomizedSearchCV(estimator=rf, param_distributions=random_grid, n_iter=100, cv=3, verbose=2,random_state=42, n_jobs=-1)
+        
         # Fit the random search model
         rf_random.fit(X_train, y_train)
-        
-        # With the new Random Classifier trained we can proceed to our regular steps, prediction.
-        rf_random.predict(X_test)
-
-        # Accuracy
-        print('Correct Prediction (%): ', accuracy_score(y_test, rf_random.predict(X_test), normalize = True) * 100.0)
-
-
-        # CLASSIFICATION REPORT
-        
-        target_names = ['Down Day', 'Up Day']
-
-        report = classification_report(y_true = y_test, y_pred = y_pred, target_names = target_names, output_dict = True)
-
-        report_df = pd.DataFrame(report).transpose()
-        display(report_df)
-        print('\n')
-
-        # Feature importance
-        feature_imp = pd.Series(rand_frst_clf.feature_importances_, index=X_Cols.columns).sort_values(ascending=False)
-        display(feature_imp)
-        
-        # Roc Curve
-
-        fig, ax = plt.subplots()
-
-        rfc_disp = plot_roc_curve(rand_frst_clf, X_test, y_test, alpha = 0.8, name='ROC Curve', lw=1, ax=ax)
-
-        ax.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r', label='Chance', alpha=.8)
-
-        ax.set(xlim=[-0.05, 1.05], ylim=[-0.05, 1.05], title="ROC Curve Random Forest")
-
-        ax.legend(loc="lower right")
-
-        plt.show()
+        return rf_random
     
     for file in files:     
         df = pd.read_csv(file)
-               
+        df = preprocess_data(df)
         direction_prediction(df)
-        
-        split_data(df)
+        X_train, X_test, y_train, y_test = split_data(df)
+        clf = train_model(X_train, X_test, y_train)
+        evaluate_model(clf, X_test, y_test)
+        rf_random = tune_hyperparameters(X_train, y_train)
         
         df.to_csv(file, index=False)    
 
