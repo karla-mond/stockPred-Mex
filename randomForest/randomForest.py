@@ -169,6 +169,20 @@ def add_data():
         # Store the data in the data frame.
         df['OBV'] = obv_values.cumsum()
 
+    def direction_prediction(df):
+        
+        # Predict closing direction
+        # 1.0 for negative values (down days)
+        # 1.0 for postive values
+        # 0.0 for no change (flat days)
+
+        direction_predictions = np.sign(df['Delta'])
+        
+        direction_predictions[direction_predictions==0.0] = 1.0
+        
+        # Store the data in the data frame.
+        df['Direction_prediction'] = direction_predictions
+        
     for file in files:     
         df = pd.read_csv(file)
                
@@ -184,6 +198,8 @@ def add_data():
         
         obv(df)
         
+        direction_prediction(df)
+        
         df.to_csv(file, index=False)
 
 def predict():
@@ -193,20 +209,6 @@ def predict():
 
     # Find the files; this is a generator, not a list
     files = (p.glob('ticker_*.csv'))
-    
-    def direction_prediction(df):
-        
-        # Predict closing direction
-        # 1.0 for negative values (down days)
-        # 1.0 for postive values
-        # 0.0 for no change (flat days)
-
-        direction_predictions = np.sign(df['Delta'])
-        
-        direction_predictions[direction_predictions==0.0] = 1.0
-        
-        # Store the data in the data frame.
-        df['Direction_prediction'] = direction_predictions
     
     def preprocess_data(df):
         
@@ -287,17 +289,16 @@ def predict():
         RocCurveDisplay.from_estimator(clf, X_test, y_test)
         plt.show()
         
-       # Parameter ideally similar to accuracy score 
+        # Parameter ideally similar to accuracy score 
         print('Random Forest Out-Of-Bag Error Score: {}'.format(clf.oob_score_))
 
-
-    def tune_hyperparameters(X_train, y_train, X_cols):
+    def tune_hyperparameters():
         
         # Tree Number
         n_estimators = list(range(200, 2000, 200))
         
         # Number of features to consider at every split
-        max_features = ['auto', 'sqrt', None, 'log2']
+        max_features = [None, 'sqrt', 'log2']
         
         # Max tree level number 
         max_depth = list(range(10, 110, 10))
@@ -319,39 +320,26 @@ def predict():
                     'min_samples_leaf': min_samples_leaf,
                     'bootstrap': bootstrap}
 
-        print(random_grid)
+        return(random_grid)
+    
+    def train_enhanced_model(random_grid):
         
-        # Specfiy the details of our Randomized Search
-        rf_random = RandomizedSearchCV(estimator=RandomForestClassifier(), param_distributions=random_grid, n_iter=100, cv=3, verbose=2,random_state=42, n_jobs=-1)
-        
+        # Find the best parameters
+        rf_random = RandomizedSearchCV(estimator = RandomForestClassifier(oob_score=True), param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
+
         # Fit the random search model
         rf_random.fit(X_train, y_train)
-    
-        # With the new Random Classifier trained we can proceed to our regular steps, prediction.
-        rf_random.predict(X_test)
-
-        print('Correct Prediction (%): ', accuracy_score(y_test, rf_random.predict(X_test), normalize = True) * 100.0)
-
-        # Build a classification report
-        report = classification_report(y_true = y_test, y_pred = y_pred, target_names = ['Down Day', 'Up Day'], output_dict = True)
-
-        report_df = pd.DataFrame(report).transpose()
-        display(report_df)
-        print('\n')
-
-        # Feature importance and store in pandas series
-        feature_imp = pd.Series(clf.feature_importances_, index=X_cols.columns).sort_values(ascending=False)
-        display(feature_imp)
-
+        return rf_random
     
     for file in files:     
         df = pd.read_csv(file)
         df = preprocess_data(df)
-        direction_prediction(df)
-        X_train, X_test, y_train, y_test, X_cols= split_data(df)
+        X_train, X_test, y_train, y_test, X_cols = split_data(df)
         clf = train_model(X_train, y_train)
         evaluate_model(clf, X_test, y_test, X_cols)
-        #tune_hyperparameters(X_train, y_train, X_cols)
+        random_grid = tune_hyperparameters()
+        clf_enhanced = train_enhanced_model(random_grid)
+        evaluate_model(clf_enhanced.best_estimator_, X_test, y_test, X_cols)
         
         df.to_csv(file, index=False)    
 
@@ -369,16 +357,12 @@ def main():
         add_data()
         predict()
         
-        # df.to_csv(data_folder, index=False)
-        
         # Load the data
         # df = pd.read_csv(data_folder)
         
     # Display the head
     # print(df.head())
-    
-    # Display NaN
-   #  print(df[df.isna().any(axis = 1)])
+
         
 if __name__ == "__main__":
     main()
