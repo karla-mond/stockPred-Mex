@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, pair_confusion_matrix
 
 from pathlib import Path
@@ -255,11 +256,12 @@ def predict():
         print('Percision: {}'.format(float(percision)))
         print('Recall: {}'.format(float(recall)))
         print('Specificity: {}'.format(float(specificity)))
-
-        disp = pair_confusion_matrix(clf, X_test, y_test, display_labels=['Down Day', 'Up Day'],normalize='true', cmap=plt.cm.Blues)
-        disp.ax_.set_title('Confusion Matrix - Normalized')
+        
+        # Create confusion matrix display normalized over true conditions (rows)
+        ConfusionMatrixDisplay.from_estimator(clf, X_test, y_test, normalize='true', display_labels=['Down Day', 'Up Day'], cmap=plt.cm.Blues)
+        plt.title('Confusion Matrix - Normalized')
         plt.show()
-            
+
     def tune_hyperparameters(X_train, y_train):
         
         # Tree Number
