@@ -11,6 +11,8 @@ from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, pair_confusion_matrix
+from sklearn.metrics import RocCurveDisplay
+from sklearn import metrics
 
 from pathlib import Path
 
@@ -226,6 +228,7 @@ def predict():
         
         # Random Forest Classifier
         # 100 trees
+        # 00B used later
         rand_frst_clf = RandomForestClassifier(n_estimators=100, oob_score=True, criterion="gini", random_state=0)
         
         # Fit the data to the model
@@ -270,24 +273,25 @@ def predict():
         
         # Feature Importance Graph
         x_values = list(range(len(clf.feature_importances_)))
-
         cumulative_importances = np.cumsum(feature_imp.values)
-
-        # Make a line graph
         plt.plot(x_values, cumulative_importances, 'g-')
 
         # Draw line at 95% of importance retained
         plt.hlines(y = 0.95, xmin = 0, xmax = len(feature_imp), color = 'r', linestyles = 'dashed')
-
-        # Format x ticks and labels
         plt.xticks(x_values, feature_imp.index, rotation = 'vertical')
-
-        # Axis labels and title
         plt.xlabel('Variable')
         plt.ylabel('Cumulative Importance')
         plt.title('Random Forest: Feature Importance Graph')
 
-    def tune_hyperparameters(X_train, y_train):
+        # ROC Curve to select optimal model, far from 45 degrees diagonal of ROC space
+        RocCurveDisplay.from_estimator(clf, X_test, y_test)
+        plt.show()
+        
+       # Parameter ideally similar to accuracy score 
+        print('Random Forest Out-Of-Bag Error Score: {}'.format(clf.oob_score_))
+
+
+    def tune_hyperparameters(X_train, y_train, X_cols):
         
         # Tree Number
         n_estimators = list(range(200, 2000, 200))
@@ -317,15 +321,28 @@ def predict():
 
         print(random_grid)
         
-        # New Random Forest Classifier to house optimal parameters
-        rf = RandomForestClassifier()
-        
         # Specfiy the details of our Randomized Search
-        rf_random = RandomizedSearchCV(estimator=rf, param_distributions=random_grid, n_iter=100, cv=3, verbose=2,random_state=42, n_jobs=-1)
+        rf_random = RandomizedSearchCV(estimator=RandomForestClassifier(), param_distributions=random_grid, n_iter=100, cv=3, verbose=2,random_state=42, n_jobs=-1)
         
         # Fit the random search model
         rf_random.fit(X_train, y_train)
-        return rf_random
+    
+        # With the new Random Classifier trained we can proceed to our regular steps, prediction.
+        rf_random.predict(X_test)
+
+        print('Correct Prediction (%): ', accuracy_score(y_test, rf_random.predict(X_test), normalize = True) * 100.0)
+
+        # Build a classification report
+        report = classification_report(y_true = y_test, y_pred = y_pred, target_names = ['Down Day', 'Up Day'], output_dict = True)
+
+        report_df = pd.DataFrame(report).transpose()
+        display(report_df)
+        print('\n')
+
+        # Feature importance and store in pandas series
+        feature_imp = pd.Series(clf.feature_importances_, index=X_cols.columns).sort_values(ascending=False)
+        display(feature_imp)
+
     
     for file in files:     
         df = pd.read_csv(file)
@@ -334,7 +351,7 @@ def predict():
         X_train, X_test, y_train, y_test, X_cols= split_data(df)
         clf = train_model(X_train, y_train)
         evaluate_model(clf, X_test, y_test, X_cols)
-        rf_random = tune_hyperparameters(X_train, y_train)
+        #tune_hyperparameters(X_train, y_train, X_cols)
         
         df.to_csv(file, index=False)    
 
