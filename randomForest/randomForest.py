@@ -218,9 +218,11 @@ def predict():
         X_cols = df[['RSI', 'SO', 'R_percent', 'MACD', 'Price_Rate_Of_Change', 'OBV']]
         Y_cols = df['Direction_prediction']
         
-        return train_test_split(X_cols, Y_cols, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(X_cols, Y_cols, random_state=0)
     
-    def train_model(X_train, X_test, y_train):
+        return X_train, X_test, y_train, y_test, X_cols
+    
+    def train_model(X_train, y_train):
         
         # Random Forest Classifier
         # 100 trees
@@ -230,7 +232,7 @@ def predict():
         rand_frst_clf.fit(X_train, y_train)
         return rand_frst_clf
     
-    def evaluate_model(clf, X_test, y_test):
+    def evaluate_model(clf, X_test, y_test, X_cols):
         y_pred = clf.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred, normalize=True) * 100.0
         print('Correct Prediction (%): ', accuracy)
@@ -257,10 +259,33 @@ def predict():
         print('Recall: {}'.format(float(recall)))
         print('Specificity: {}'.format(float(specificity)))
         
-        # Create confusion matrix display normalized over true conditions (rows)
+        # Normalized confusion matrix
         ConfusionMatrixDisplay.from_estimator(clf, X_test, y_test, normalize='true', display_labels=['Down Day', 'Up Day'], cmap=plt.cm.Blues)
         plt.title('Confusion Matrix - Normalized')
         plt.show()
+        
+        # Gini impurity. Misclassified result.
+        feature_imp = pd.Series(clf.feature_importances_, index=X_cols.columns).sort_values(ascending=False)
+        print(feature_imp)
+        
+        # Feature Importance Graph
+        x_values = list(range(len(clf.feature_importances_)))
+
+        cumulative_importances = np.cumsum(feature_imp.values)
+
+        # Make a line graph
+        plt.plot(x_values, cumulative_importances, 'g-')
+
+        # Draw line at 95% of importance retained
+        plt.hlines(y = 0.95, xmin = 0, xmax = len(feature_imp), color = 'r', linestyles = 'dashed')
+
+        # Format x ticks and labels
+        plt.xticks(x_values, feature_imp.index, rotation = 'vertical')
+
+        # Axis labels and title
+        plt.xlabel('Variable')
+        plt.ylabel('Cumulative Importance')
+        plt.title('Random Forest: Feature Importance Graph')
 
     def tune_hyperparameters(X_train, y_train):
         
@@ -306,9 +331,9 @@ def predict():
         df = pd.read_csv(file)
         df = preprocess_data(df)
         direction_prediction(df)
-        X_train, X_test, y_train, y_test = split_data(df)
-        clf = train_model(X_train, X_test, y_train)
-        evaluate_model(clf, X_test, y_test)
+        X_train, X_test, y_train, y_test, X_cols= split_data(df)
+        clf = train_model(X_train, y_train)
+        evaluate_model(clf, X_test, y_test, X_cols)
         rf_random = tune_hyperparameters(X_train, y_train)
         
         df.to_csv(file, index=False)    
