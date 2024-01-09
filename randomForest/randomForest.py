@@ -1,6 +1,5 @@
 # Import libraries
 import os
-import sys
 import yfinance as yf
 
 import numpy as np
@@ -10,9 +9,8 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, pair_confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report, multilabel_confusion_matrix
 from sklearn.metrics import RocCurveDisplay
-from sklearn import metrics
 
 from pathlib import Path
 
@@ -26,7 +24,7 @@ def get_price_data():
 
     # Supports more than 1 ticker.
     # S&P500 - ^GSPC
-    tickerStrings = ['AAPL']
+    tickerStrings = ['AAPL', 'MSFT', 'V']
     
     for ticker in tickerStrings:
         # Last 2 years, with daily frequency
@@ -363,7 +361,5 @@ def main():
     # Display the head
     # print(df.head())
 
-        
 if __name__ == "__main__":
     main()
-
