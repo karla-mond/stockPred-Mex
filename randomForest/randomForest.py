@@ -170,7 +170,7 @@ def add_data():
     def direction_prediction(df):
         
         # Predict closing direction
-        # 1.0 for negative values (down days)
+        # -1.0 for negative values (down days)
         # 1.0 for postive values
         # 0.0 for no change (flat days)
 
