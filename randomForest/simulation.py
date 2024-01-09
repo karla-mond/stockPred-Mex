@@ -15,6 +15,9 @@ days_to_simulate = min(days, len(data))
 
 # Simulate trading based on predictions
 for index, row in data.iterrows():
+    if index >= days_to_simulate:
+        break
+
     if row['Direction_prediction'] == 1.0:
         # Buy shares if prediction is positive
         if money > 0:
