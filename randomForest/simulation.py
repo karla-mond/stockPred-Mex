@@ -40,10 +40,10 @@ p = Path('randomForest/csvDataFrames')
 files = p.glob('ticker_*.csv')
 
 # Input number of days to simulate
-days_to_simulate = 5 # Replace with days to simulate
+days_to_simulate = 100 # Replace with days to simulate
 
 # Initialize variables for global sum
-global_initial_money = 10000 # Replace with your initial investment amount
+global_initial_money = 1000 # Replace with your initial investment amount
 global_final_value = 0
 
 # Simulate trading for each stock
