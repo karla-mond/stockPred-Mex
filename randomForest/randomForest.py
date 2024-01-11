@@ -24,7 +24,7 @@ def get_price_data():
 
     # Supports more than 1 ticker.
     # S&P500 - ^GSPC
-    tickerStrings = ['AAPL', 'MSFT', 'V']
+    tickerStrings = ['GOOG', 'MSFT', 'V']
     
     for ticker in tickerStrings:
         # Last 2 years, with daily frequency
@@ -67,7 +67,8 @@ def add_data():
     def relative_strength_index(df):
         # Calculate the change in price
         delta = df['Close'].diff().dropna()
-        
+       
+        ''' 
         # define the number of days out you want to predict
         days_out = 30
 
@@ -82,6 +83,7 @@ def add_data():
 
         # print the first 50 rows
         print(smoothed_df.head(50))
+        '''
         
         # Calculate momentum since we want to predict if the stock goes up and down, not the price itself
         # Momentum indicator Relative Strength Index
@@ -223,28 +225,33 @@ def predict():
         return df
         
     def split_data(df):
-        
         # Split into training and test set
         X_cols = df[['RSI', 'SO', 'R_percent', 'MACD', 'Price_Rate_Of_Change', 'OBV']]
         Y_cols = df['Direction_prediction']
         
         X_train, X_test, y_train, y_test = train_test_split(X_cols, Y_cols, random_state=0)
-    
+        
         return X_train, X_test, y_train, y_test, X_cols
     
     def train_model(X_train, y_train):
-        
         # Random Forest Classifier
         # 100 trees
         # 00B used later
-        rand_frst_clf = RandomForestClassifier(n_estimators=100, oob_score=True, criterion="gini", random_state=0)
+        rand_frst_clf = RandomForestClassifier(bootstrap=True, n_estimators=100, oob_score=True, criterion="gini", random_state=0)
         
         # Fit the data to the model
         rand_frst_clf.fit(X_train, y_train)
         return rand_frst_clf
     
-    def evaluate_model(clf, X_test, y_test, X_cols):
+    def evaluate_model(file, clf, X_test, y_test, X_cols):
         y_pred = clf.predict(X_test)
+        
+        # Save results for market simulation
+        testing_indices = X_test.index
+        close_values = df.loc[testing_indices, 'Close']
+        result_df = pd.DataFrame({'Direction_prediction': y_pred, 'Close': close_values}, index=testing_indices)
+        result_df.to_csv(f"{file}_results.csv", header=True, index=True)
+                
         accuracy = accuracy_score(y_test, y_pred, normalize=True) * 100.0
         print('Correct Prediction (%): ', accuracy)
 
@@ -298,7 +305,7 @@ def predict():
         # Parameter ideally similar to accuracy score 
         print('Random Forest Out-Of-Bag Error Score: {}'.format(clf.oob_score_))
 
-    def tune_hyperparameters():
+    def train_model_enhanced():
         
         # Tree Number
         n_estimators = list(range(200, 2000, 200))
@@ -317,7 +324,7 @@ def predict():
         min_samples_leaf = [1, 2, 7, 12, 14, 16, 20]
         
         # Method of selecting samples for training each tree
-        bootstrap = [True, False]
+        bootstrap = [True]
 
         random_grid = {'n_estimators': n_estimators,
                     'max_features': max_features,
@@ -325,27 +332,25 @@ def predict():
                     'min_samples_split': min_samples_split,
                     'min_samples_leaf': min_samples_leaf,
                     'bootstrap': bootstrap}
-
-        return(random_grid)
     
-    def train_enhanced_model(random_grid):
-        
         # Find the best parameters
-        rf_random = RandomizedSearchCV(estimator = RandomForestClassifier(oob_score=True), param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
+        rf_random = RandomizedSearchCV(estimator = RandomForestClassifier(oob_score=True), param_distributions = random_grid, n_iter = 100, cv = 3, verbose=1, random_state=42, n_jobs = -1)
 
         # Fit the random search model
         rf_random.fit(X_train, y_train)
-        return rf_random
+        
+        return rf_random    
     
     for file in files:     
         df = pd.read_csv(file)
         df = preprocess_data(df)
         X_train, X_test, y_train, y_test, X_cols = split_data(df)
+        print(file)
         clf = train_model(X_train, y_train)
-        evaluate_model(clf, X_test, y_test, X_cols)
-        random_grid = tune_hyperparameters()
-        clf_enhanced = train_enhanced_model(random_grid)
-        evaluate_model(clf_enhanced.best_estimator_, X_test, y_test, X_cols)
+        evaluate_model(file, clf, X_test, y_test, X_cols)
+        # print(file)
+        # clf_enhanced = train_model_enhanced()
+        # evaluate_model(clf_enhanced.best_estimator_, X_test, y_test, X_cols)
         
         df.to_csv(file, index=False)    
 

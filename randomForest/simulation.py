@@ -36,14 +36,14 @@ def simulate_trading(file_path, initial_money, days_to_simulate):
     return final_value
 
 # Read in multiple files saved with the previous section
-p = Path('randomForest/csvDataFrames')
+p = Path('randomForest/csvPrediction')
 files = p.glob('ticker_*.csv')
 
 # Input number of days to simulate
-days_to_simulate = 100 # Replace with days to simulate
+days_to_simulate = 7 # Replace with days to simulate
 
 # Initialize variables for global sum
-global_initial_money = 1000 # Replace with your initial investment amount
+global_initial_money = 10000 # Replace with your initial investment amount
 global_final_value = 0
 
 # Simulate trading for each stock
