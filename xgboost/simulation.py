@@ -16,18 +16,18 @@ def simulate_trading(file_path, initial_money, days_to_simulate):
         if index >= days_to_simulate:
             break
 
-        if row['Direction_prediction'] == 1.0:
+        if row['Direction_prediction'] == 2:
             # Buy shares if prediction is positive
             if money > 0:
                 shares_to_buy = money / row['Close']
                 shares += shares_to_buy
                 money = 0
-        elif row['Direction_prediction'] == -1.0:
+        elif row['Direction_prediction'] == 0:
             # Sell shares if prediction is negative
             if shares > 0:
                 money += shares * row['Close']
                 shares = 0
-        elif row['Direction_prediction'] == 0.0:
+        elif row['Direction_prediction'] == 1:
             # No action for flat days, maintain the current position
             pass
     
@@ -36,14 +36,14 @@ def simulate_trading(file_path, initial_money, days_to_simulate):
     return final_value
 
 # Read in multiple files saved with the previous section
-p = Path('randomForest/csvDataFrames')
+p = Path('xgboost/csvDataFrames')
 files = p.glob('ticker_*.csv')
 
 # Input number of days to simulate
 days_to_simulate = 100 # Replace with days to simulate
 
 # Initialize variables for global sum
-global_initial_money = 1000 # Replace with your initial investment amount
+global_initial_money = 10000 # Replace with your initial investment amount
 global_final_value = 0
 
 # Simulate trading for each stock
