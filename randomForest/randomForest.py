@@ -65,9 +65,23 @@ def add_data():
     files = (p.glob('ticker_*.csv'))
     
     def relative_strength_index(df):
-    
         # Calculate the change in price
         delta = df['Close'].diff().dropna()
+        
+        # define the number of days out you want to predict
+        days_out = 30
+
+        # Calculate ema to give more weight to recent values while smoothing out fluctuation
+        price_data_smoothed = df[['Close', 'Low', 'High', 'Open', 'Volume']].ewm(span=days_out).mean()
+
+        # Join the smoothed columns with the symbol and datetime column
+        smoothed_df = pd.concat([df[['Symbol', 'Date']], price_data_smoothed], axis=1)
+        
+        # Calculate the flag, and calculate the diff compared to 30 days ago
+        smoothed_df['Signal_Flag'] = np.sign(df['Close'].diff(days_out))
+
+        # print the first 50 rows
+        print(smoothed_df.head(50))
         
         # Calculate momentum since we want to predict if the stock goes up and down, not the price itself
         # Momentum indicator Relative Strength Index
@@ -185,17 +199,11 @@ def add_data():
         df = pd.read_csv(file)
                
         relative_strength_index(df)
-    
         stochastic_oscillator(df)
-        
         williams_r(df)
-        
         macd(df)
-        
         price_rate_change(df)
-        
         obv(df)
-        
         direction_prediction(df)
         
         df.to_csv(file, index=False)
