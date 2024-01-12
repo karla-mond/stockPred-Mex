@@ -195,7 +195,7 @@ def add_data():
         direction_predictions[direction_predictions==0.0] = 1.0
         
         # Store the data in the data frame.
-        df['Direction_prediction'] = direction_predictions
+        df['Direction'] = direction_predictions
         
     for file in files:     
         df = pd.read_csv(file)
@@ -227,7 +227,7 @@ def predict():
     def split_data(df):
         # Split into training and test set
         X_cols = df[['RSI', 'SO', 'R_percent', 'MACD', 'Price_Rate_Of_Change', 'OBV']]
-        Y_cols = df['Direction_prediction']
+        Y_cols = df['Direction']
         
         X_train, X_test, y_train, y_test = train_test_split(X_cols, Y_cols, random_state=0)
         
@@ -250,7 +250,7 @@ def predict():
         testing_indices = X_test.index
         close_values = df.loc[testing_indices, 'Close']
         result_df = pd.DataFrame({'Direction_prediction': y_pred, 'Close': close_values}, index=testing_indices)
-        result_df.to_csv(f"{file}_results.csv", header=True, index=True)
+        result_df.to_csv(f"{file}_results", header=True, index=True)
                 
         accuracy = accuracy_score(y_test, y_pred, normalize=True) * 100.0
         print('Correct Prediction (%): ', accuracy)
@@ -324,7 +324,7 @@ def predict():
         min_samples_leaf = [1, 2, 7, 12, 14, 16, 20]
         
         # Method of selecting samples for training each tree
-        bootstrap = [True]
+        bootstrap = [True, False]
 
         random_grid = {'n_estimators': n_estimators,
                     'max_features': max_features,
@@ -334,23 +334,23 @@ def predict():
                     'bootstrap': bootstrap}
     
         # Find the best parameters
-        rf_random = RandomizedSearchCV(estimator = RandomForestClassifier(oob_score=True), param_distributions = random_grid, n_iter = 100, cv = 3, verbose=1, random_state=42, n_jobs = -1)
+        rf_random_clf = RandomizedSearchCV(estimator = RandomForestClassifier(oob_score=True), param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
 
         # Fit the random search model
-        rf_random.fit(X_train, y_train)
+        rf_random_clf.fit(X_train, y_train)
         
-        return rf_random    
+        return rf_random_clf
     
     for file in files:     
         df = pd.read_csv(file)
         df = preprocess_data(df)
         X_train, X_test, y_train, y_test, X_cols = split_data(df)
-        print(file)
-        clf = train_model(X_train, y_train)
-        evaluate_model(file, clf, X_test, y_test, X_cols)
         # print(file)
-        # clf_enhanced = train_model_enhanced()
-        # evaluate_model(clf_enhanced.best_estimator_, X_test, y_test, X_cols)
+        # clf = train_model(X_train, y_train)
+        # evaluate_model(file, clf, X_test, y_test, X_cols)
+        print(file)
+        clf_enhanced = train_model_enhanced()
+        evaluate_model(file, clf_enhanced.best_estimator_, X_test, y_test, X_cols)
         
         df.to_csv(file, index=False)    
 
