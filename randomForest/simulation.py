@@ -40,7 +40,7 @@ p = Path('randomForest/csvPrediction')
 files = p.glob('ticker_*.csv')
 
 # Input number of days to simulate
-days_to_simulate = 7 # Replace with days to simulate
+days_to_simulate = 90 # Replace with days to simulate
 
 # Initialize variables for global sum
 global_initial_money = 10000 # Replace with your initial investment amount
