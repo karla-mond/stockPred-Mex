@@ -175,7 +175,12 @@ $$ PROC_{t}=\frac{C_{t}-C_{t-n}}{C_{t-n}} $$
   - Cumulative add if prices go up. 
   - Subtracts volume when prices go down.
 
-$$ OBV\left(t\right)=\left\lbrace\begin{matrix}{OBV\left(t-1\right)}+Vol\left(t\right)...ifC\left(t\right)>C\left(t-1\right)\\ OBV\left(t-1\right)-Vol\left(t\right)...ifC\left(t\right)<C\left(t-1\right)\\ OBV\left(t-1\right)...ifC\left(t\right)=C\left(t-1\right)\end{matrix}\right\rbrace $$
+$$ OBV(t) = \begin{cases}
+    OBV(t-1) + \text{Vol}(t) & \text{if } C(t) > C(t-1) \\
+    OBV(t-1) - \text{Vol}(t) & \text{if } C(t) < C(t-1) \\
+    OBV(t-1) & \text{if } C(t) = C(t-1)
+\end{cases}
+$$
 
 - C(t):  Closing time at time t
 - Vol(t): Trading volume at time t
@@ -210,5 +215,65 @@ $$
 
 - p(i|t) : Probability of choosing an element of class i given that the element is in node t.
 - C :  Number of classes.
+
+### Entropy 
+
+- Measure randomness or uncertainty
+
+- Information gain
+  - Difference in entropy before and after the split
+  - Low entropy: Low randomness
+  - High entropy: High randomness
+
+$$ H(t) = -\sum_{i=1}^{c} p(i | t) \cdot \log_2(p(i | t)) $$
+$$ H(t) = -[p(0 | t) \cdot \log_2(p(0 | t)) + p(1 | t) \cdot \log_2(p(1 | t))] $$
+
+- p(i|t) : probability of choosing an element of class i given that the element is in node t.
+- C : number of classes.
+
+## Random Forest Methodology
+
+- Training multiple decision trees
+- Randomly selecting m = √ M features out of M and n out of N samples
+- Bagging (Bootstrap Aggregating)
+  - Training each tree on a random subset of the training data with replacement
+- Increasing the number of trees stabilizes results by continuous re-sampling of data
+- OOB: unused data for performance evaluation
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/03aab2b7-bafa-4939-ac52-aa19f3a07058)
+
+## Evaluation
+
+- How well the final predicted classes align with the actual classes in the dataset
+- EnhancementRandomizedSearchCV()
+  - Best set of hyper parameters which gives the best score
+  - Parameters are optimized by cross-validation
+
+$$ \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Number of Predictions}} $$
+
+Portion of all testing samples classified correctly
+
+$$ \text{Precision} = \frac{\text{True Positives}}{\text{True Positives + False Positives}} $$
+
+Not label as positive, a negative sample
+
+$$ \text{Recall} = \frac{\text{True Positives}}{\text{True Positives + False Negatives}} $$
+
+Correctly identify positive labels 
+
+$$ \text{Specificity} = \frac{\text{True Negatives}}{\text{True Negatives + False Positives}} $$
+
+Correctly identify negative labels
+
+$$ F1 = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision + Recall}} $$
+
+Harmonic mean of precision and recall
+
+## Model Evaluation
+
+### Google
+### MSFT
+### V
+
 
 
