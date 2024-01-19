@@ -275,31 +275,89 @@ Harmonic mean of precision and recall
 
 Original
 
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/0fd714bc-a221-4b84-bb5a-719e38cdc69b)
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/23e8bac9-4f9b-4f30-9edf-bb861408c60e)
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/af2e0e27-dce3-4ec6-8b06-a9a35aaf1281)
+Confusion Matrix           |  ROC Cruve               | Feature Importance         |
+:-------------------------:|:-------------------------:|:-------------------------:|
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/0fd714bc-a221-4b84-bb5a-719e38cdc69b)  | ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/23e8bac9-4f9b-4f30-9edf-bb861408c60e) | ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/af2e0e27-dce3-4ec6-8b06-a9a35aaf1281)
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/4f8d3fd0-630b-4127-b3fa-f2d0faf98673)
 
 Enhanced
 
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/0050f68a-0270-49a2-ad75-f4bd2dcebac6)
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/0e239513-f5da-487e-95b7-b6f685f38521)
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/d4d39f35-95dc-41a8-b89f-bebe4103b859)
+Confusion Matrix           |  ROC Cruve               | Feature Importance         |
+:-------------------------:|:-------------------------:|:-------------------------:|
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/0050f68a-0270-49a2-ad75-f4bd2dcebac6) | ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/0e239513-f5da-487e-95b7-b6f685f38521) | ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/d4d39f35-95dc-41a8-b89f-bebe4103b859)
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/14dd4670-6725-4d24-a740-574c578994f2)
 
 ### MSFT
 
 Original
 
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/c77978cf-b8f1-4451-9a12-fc515eb17043)
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/a5bdfffd-37ff-4bab-bcf1-038430797d78)
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/6f65113b-139b-46e7-af2c-211646e7df65)
+Confusion Matrix           |  ROC Cruve               | Feature Importance         |
+:-------------------------:|:-------------------------:|:-------------------------:|
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/c77978cf-b8f1-4451-9a12-fc515eb17043)| ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/a5bdfffd-37ff-4bab-bcf1-038430797d78)| ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/6f65113b-139b-46e7-af2c-211646e7df65)|
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/800e121c-7a16-47df-ac56-632649630ff1)
+
 
 Enhanced
 
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/4c89c81e-652e-413a-a312-752589154925)
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/27381037-bc25-419c-b44f-d5b913a2a557)
-![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/cac3aef3-3ffb-4e97-9df1-692810b70c75)
+Confusion Matrix           |  ROC Cruve               | Feature Importance         |
+:-------------------------:|:-------------------------:|:-------------------------:|
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/4c89c81e-652e-413a-a312-752589154925)| ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/27381037-bc25-419c-b44f-d5b913a2a557)| ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/cac3aef3-3ffb-4e97-9df1-692810b70c75)|
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/e89d19ad-2165-43b2-90e8-1ca4ec3613e1)
 
 ### V
 
+Original
 
+Confusion Matrix           |  ROC Cruve               | Feature Importance         |
+:-------------------------:|:-------------------------:|:-------------------------:|
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/fe711789-2095-4bfa-9ac7-e6f0685a9678)| ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/06cb585b-289e-4122-9b92-1108d4f7e46b)| ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/bda689e3-9771-4db8-afda-97ac64960883)|
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/4bec3601-c6d9-445d-83e6-ffbc6409059f)
+
+Enhanced
+
+Confusion Matrix           |  ROC Cruve               | Feature Importance         |
+:-------------------------:|:-------------------------:|:-------------------------:|
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/adf80a4e-2508-4974-998b-0ea51c0a4c7e)| ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/42ed5cfa-819b-4561-9940-bb6f7f9c7b53)| ![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/3a08c041-b438-47e7-90eb-ee660242349d)|
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/e537cfed-a81b-49f6-a0e5-534c4e6f4efc)
+
+### Comparison
+
+| Metrics            | GOOG        | MSFT        | V           | 
+| -----------        | ----------- | ----------- | ----------- |
+| Correct Prediction | **69.10**   | 67.47       | 65.85       |
+| Accuracy           | **0.69**    | 0.67        | 0.65        |
+| Out-Of-Bag         | 0.71        | **0.74**    | 0.66        |
+
+## Simulation
+
+Results of the simulation with a starting balance of $10,000 for each stock
+
+Original 
+
+| Days        | GOOG          | MSFT         | V           | 
+| ----------- | -----------   | -----------  | ----------- |
+| 7           | $7504.29      | $9088.34     | $7124.58    |
+| 30          | **$20428.04** | $19963.9     | $9032.84    |
+| 60          | **$43432.95** | $11934.86    | $4585.1     |
+| 90          | $33186.53     | **$3837.84** | $3091.25    |
+
+
+Enhanced
+
+| Days        | GOOG          | MSFT         | V           | 
+| ----------- | -----------   | -----------  | ----------- |
+| 7           | $7504.29      | $7185.86     | $7411.16    |
+| 30          | **$20608.03** | $15023.71    | $7506.98    |
+| 60          | **$59505.92** | $9204.86     | $3845.99    |
+| 90          | **$67393.19** | $4193.66     | $3059.73    |
+
+## XGBoost: Extreme Gradient Boosting
+
+## LSTM
 
