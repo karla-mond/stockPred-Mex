@@ -272,7 +272,33 @@ Harmonic mean of precision and recall
 ## Model Evaluation
 
 ### Google
+
+Original
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/0fd714bc-a221-4b84-bb5a-719e38cdc69b)
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/23e8bac9-4f9b-4f30-9edf-bb861408c60e)
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/af2e0e27-dce3-4ec6-8b06-a9a35aaf1281)
+
+Enhanced
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/0050f68a-0270-49a2-ad75-f4bd2dcebac6)
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/0e239513-f5da-487e-95b7-b6f685f38521)
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/d4d39f35-95dc-41a8-b89f-bebe4103b859)
+
 ### MSFT
+
+Original
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/c77978cf-b8f1-4451-9a12-fc515eb17043)
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/a5bdfffd-37ff-4bab-bcf1-038430797d78)
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/6f65113b-139b-46e7-af2c-211646e7df65)
+
+Enhanced
+
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/4c89c81e-652e-413a-a312-752589154925)
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/27381037-bc25-419c-b44f-d5b913a2a557)
+![image](https://github.com/karla-mond/stockPred-Mex/assets/78885738/cac3aef3-3ffb-4e97-9df1-692810b70c75)
+
 ### V
 
 
